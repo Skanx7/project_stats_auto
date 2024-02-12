@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from .data_handler import train_data, test_data, train_prep, test_prep, results
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 class PreProcess:
     """Class to preprocess the data for the Spaceship Titanic dataset."""
@@ -22,18 +23,18 @@ class PreProcess:
     def standardize(self) -> None:
         """Standardizes the numerical columns."""
         numerical_columns = ['Age', 'RoomService', 'FoodCourt', 'ShoppingMall', 'Spa', 'VRDeck']  # Adjust as needed
-
-        for column in numerical_columns:
-            mean = self.df[column].mean()
-            std = self.df[column].std()
-            self.df[column] = (self.df[column] - mean) / std
-
+        scaler = StandardScaler()
+        self.df[numerical_columns] = scaler.fit_transform(self.df[numerical_columns])
 
     def add_columns(self) -> None:
         """Adds new columns to the dataframe."""
         self.df[['GroupId', 'NumberId']] = self.df['PassengerId'].str.split('_', expand=True)                   # Split the PassengerId into two columns
         self.df[['CabinDeck', 'CabinNumber', 'CabinSide']] = self.df['Cabin'].str.split('/', expand=True)       # Split the Cabin into three columns
         self.df['FamilySize'] = self.df.groupby(['GroupId', self.df['Name'].apply(lambda x: x.split(' ')[-1] if pd.notna(x) else 'Missing')])['Name'].transform('count')
+        # One-hot encode the categorical columns 
+        # basically we just add a binary column for each unique category
+        categorical_cols = ['CabinDeck', 'CabinSide', 'HomePlanet', 'Destination']
+        self.df = pd.get_dummies(self.df, columns=categorical_cols, drop_first=True)
         excluded_cols = [] if self.redundant_cols_bool else ['PassengerId', 'Cabin']
         cols = ['GroupId', 'NumberId', 'CabinDeck', 'CabinNumber', 'CabinSide'] +\
             [col for col in self.df.columns if col not in ['GroupId', 'NumberId', 'CabinDeck', 'CabinNumber', 'CabinSide'] and col not in excluded_cols]
