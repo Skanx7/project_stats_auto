@@ -1,5 +1,6 @@
 from .plotter import Plotter
 from .preprocess import PreProcess
-
-def run():
-    PreProcess.run_all()
+from .regression import Regression
+def run(shuffle = False):
+    PreProcess.run_all(shuffle=shuffle)
+    Regression.run()

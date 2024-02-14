@@ -7,39 +7,17 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import os
-from .methods import LogisticRegressionModel, GradientBoostingModel
 
 class Regression:
 
-    def __init__(self, df : pd.DataFrame, model_name = "Logistic" | "Gradient-Boosting" | "SVM", max_iter = 10000):
+    def __init__(self, df : pd.DataFrame, model = None, max_iter = 10000):
 
-        """
-        Initializes the ModelSelector with a specific model based on the provided DataFrame.
-
-        Parameters:
-        df (pd.DataFrame): The DataFrame containing the data.
-        model_name (str): The name of the model to use. Possible values are:
-                          - 'LogisticRegression': Logistic Regression
-                          - 'GradientBoosting': Gradient Boosting Classifier
-                          - 'SVM': Support Vector Machine Classifier
-                          Raises:
-        ValueError: If `model_name` is not one of the specified options.
-        """
+        """Initializes the Regression class."""
 
         self.df = df.copy()
         self.X = df.drop(['Transported', 'PassengerId'], axis=1, errors='ignore')
-        self.y = df['Transported'].astype('int')
-
-        model_options = {
-            'LogisticRegression': LogisticRegression(max_iter=max_iter),
-            'GradientBoosting': GradientBoostingModel(),
-            'SVM': None
-        }
-
-        if model_name not in model_options:
-            raise ValueError(f"model_name must be one of {list(model_options.keys())}, got '{model_name}' instead.")
-        
-        self.model = model_options[model_name]
+        self.y = df['Transported'].astype('int')  # Ensure the target variable is integer encoded
+        self.model = model if model is not None else LogisticRegression(max_iter=max_iter)
 
     def fit(self, test_size=0.2, random_state=42):
 
@@ -72,6 +50,7 @@ class Regression:
         filename = f"{model_name}_{penalty}_model.joblib"
         full_path = os.path.join(path, filename)
         joblib.dump(self.model, filename=full_path)
+        print(f"Model saved to {full_path}")
 
     def plot_roc(self):
         
@@ -102,7 +81,7 @@ class Regression:
 
         submission = pd.DataFrame({'PassengerId': df['PassengerId'], 'Transported': self.predict(df.drop('PassengerId', axis=1))})
         submission.to_csv(os.path.join(path, 'submission.csv'), index=False)
-
+        
     @staticmethod
     def run():
         df = pd.read_csv('data/preprocessed_train.csv')
