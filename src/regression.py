@@ -110,4 +110,5 @@ class Regression:
         regression_model.fit()
         regression_model.save_model(path='models/')
         regression_model.plot_roc()
+        print("Model saved to 'models/' directory.")
 
