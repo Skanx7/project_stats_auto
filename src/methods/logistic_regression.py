@@ -75,6 +75,7 @@ class LogisticRegressionModel(BaseModel):
         super().__init__(model=LogisticRegression(**params), **params)
 
     def train(self, X_train, y_train):
+
         """
         Trains the logistic regression model on the given training data.
 
@@ -83,6 +84,7 @@ class LogisticRegressionModel(BaseModel):
         - y_train: The target labels for training.
         """
         self.model.fit(X_train, y_train)
+        print('Model trained successfully!')
 
     def predict(self, X):
         """
