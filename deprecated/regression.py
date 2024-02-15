@@ -1,7 +1,6 @@
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_auc_score, roc_curve
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
 import joblib
 import matplotlib.pyplot as plt
 import pandas as pd

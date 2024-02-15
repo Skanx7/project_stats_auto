@@ -11,35 +11,32 @@ from .methods import LogisticRegressionModel, GradientBoostingModel
 
 class Regression:
 
-    def __init__(self, df : pd.DataFrame, model_name = "Logistic" | "Gradient-Boosting" | "SVM", max_iter = 10000):
-
-        """
-        Initializes the ModelSelector with a specific model based on the provided DataFrame.
-
-        Parameters:
-        df (pd.DataFrame): The DataFrame containing the data.
-        model_name (str): The name of the model to use. Possible values are:
-                          - 'LogisticRegression': Logistic Regression
-                          - 'GradientBoosting': Gradient Boosting Classifier
-                          - 'SVM': Support Vector Machine Classifier
-                          Raises:
-        ValueError: If `model_name` is not one of the specified options.
-        """
-
+    def __init__(self, df : pd.DataFrame):
         self.df = df.copy()
         self.X = df.drop(['Transported', 'PassengerId'], axis=1, errors='ignore')
         self.y = df['Transported'].astype('int')
+        self.models = {}
+    
+    def add_task(self, model : LogisticRegressionModel | GradientBoostingModel = None, tasks = []):
+        self.models[model.__class__.__name__] = {'instance': model, 'tasks': tasks}
 
-        model_options = {
-            'LogisticRegression': LogisticRegression(max_iter=max_iter),
-            'GradientBoosting': GradientBoostingModel(),
-            'SVM': None
-        }
+    def execute_tasks(self):
+        for model_name, model_info in self.models.items():
+            model = model_info['instance']
+            tasks = model_info['tasks']
 
-        if model_name not in model_options:
-            raise ValueError(f"model_name must be one of {list(model_options.keys())}, got '{model_name}' instead.")
-        
-        self.model = model_options[model_name]
+            if 'train' in tasks:
+                self._train_model(model, model_name)
+            
+            if 'plot_auc' in tasks:
+                self._plot_roc(model, model_name)
+            
+            if 'submission' in tasks:
+                self._make_submission(model, model_name)
+            
+            if 'add_auc_csv' in tasks:
+                self._add_auc_to_csv(model, model_name)
+
 
     def fit(self, test_size=0.2, random_state=42):
 
@@ -47,31 +44,6 @@ class Regression:
         
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=test_size, random_state=random_state)
         self.model.fit(self.X_train, self.y_train)
-
-    def load_model(self, path=None):
-
-        """Loads the model from the specified path or the first file in the 'models' directory if no path is specified."""
-
-        if path is None:
-            path = 'models/'
-            files = os.listdir(path)
-            if files:
-                file_path = os.path.join(path, files[0])
-                self.model = joblib.load(file_path)
-            else:
-                raise FileNotFoundError("No model files found in the 'models' directory.")
-        else:
-            self.model = joblib.load(path)
-
-    def save_model(self, path):
-
-        """Saves the model to the specified path."""
-
-        model_name = self.model.__class__.__name__
-        penalty = getattr(self.model, 'penalty', 'no_penalty')
-        filename = f"{model_name}_{penalty}_model.joblib"
-        full_path = os.path.join(path, filename)
-        joblib.dump(self.model, filename=full_path)
 
     def plot_roc(self):
         
