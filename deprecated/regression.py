@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import os
-
 class Regression:
 
     def __init__(self, df : pd.DataFrame, model = None, max_iter = 10000):

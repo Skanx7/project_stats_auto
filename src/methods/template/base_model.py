@@ -14,6 +14,8 @@ class BaseModel:
             self.params = params
             self.model_name = self.generate_name()
 
+    def __repr__(self) -> str:
+        return f"{self.model_name}"
     def generate_name(self) -> str:
             """
             Generates a name for the model based on its class name and parameters.

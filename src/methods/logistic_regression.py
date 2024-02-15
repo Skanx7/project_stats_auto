@@ -97,5 +97,24 @@ class LogisticRegressionModel(BaseModel):
         - The predicted class labels.
         """
         return self.model.predict(X)
-    
+    def predict_proba(self, X):
+        """
+        Predicts the class probabilities for the given input data.
+
+        Parameters:
+        - X: The input data for prediction.
+
+        Returns:
+        - The predicted class probabilities.
+        """
+        return self.model.predict_proba(X)[:, 1]
+    def plot_roc(self, X):
+        """
+        Plots the ROC curve for the model.
+
+        Parameters:
+        - y: The true target labels.
+        - y_pred_proba: The predicted class probabilities.
+        """
+        super().plot_roc(y, self.predict_proba(X))
 LogisticRegressionModel()

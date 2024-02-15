@@ -19,6 +19,8 @@ class Regression:
         self.y = df['Transported'].astype('int')
         self.models = {}
     
+    def __repr__(self):
+        return f"Regression({self.models})"
     def train_test_split(self, test_size=0.2, random_state=42):
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=test_size, random_state=random_state)
 
@@ -29,10 +31,13 @@ class Regression:
         for model_name, model_info in self.models.items():
             model : Reg_Model = model_info['instance']
             tasks = model_info['tasks']
+            probs = model.pred
             if 'train' in tasks:
-                model.train(self.X, self.y)
+                self.train_test_split()
+                model.train(self.X_train, self.y_train)
             
             if 'plot_auc' in tasks:
+                
                 model.plot_roc(self.y, model.predict(self.X))
             
             if 'save_model' in tasks:
@@ -47,7 +52,7 @@ class Regression:
                 model.save_auc(self.y,)
 
     @staticmethod
-    def run(models : list = [LogisticRegressionModel()], tasks : list = ['train', 'save_model', 'save_auc']):
+    def run(models : list = [LogisticRegressionModel()], tasks : list = ['train', 'save_model']):
         df = pd.read_csv('data/preprocessed_train.csv')
         regression = Regression(df)
         regression.train_test_split()
