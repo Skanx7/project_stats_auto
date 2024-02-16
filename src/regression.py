@@ -1,23 +1,20 @@
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import roc_auc_score, roc_curve
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
-import joblib
 import matplotlib.pyplot as plt
 import pandas as pd
-import numpy as np
-import os
 from .methods import LogisticRegressionModel, GradientBoostingModel
 from typing import Union
 
+
 Reg_Model = Union[LogisticRegressionModel, GradientBoostingModel]
+
 class Regression:
 
-    def __init__(self, df : pd.DataFrame, test_size = 0.2, random_state = 42):
+    def __init__(self, df : pd.DataFrame, models = {}, debug = True):
         self.df = df.copy()
         self.X = df.drop(['Transported', 'PassengerId'], axis=1, errors='ignore')
         self.y = df['Transported'].astype('int')
-        self.models = {}
+        self.models = models
+        self.debug = debug
     
     def __repr__(self):
         return f"Regression({self.models})"
@@ -31,25 +28,24 @@ class Regression:
         for model_name, model_info in self.models.items():
             model : Reg_Model = model_info['instance']
             tasks = model_info['tasks']
-            probs = model.pred
             if 'train' in tasks:
-                self.train_test_split()
                 model.train(self.X_train, self.y_train)
-            
+                print(f"The model \"{model_name}\" has been trained.")
             if 'plot_auc' in tasks:
-                
-                model.plot_roc(self.y, model.predict(self.X))
+                model.plot_roc(self.X_test, self.y_test)
+                print(f"The model \"{model_name}\" AUC has been plotted.")
             
             if 'save_model' in tasks:
                 model.save_model()
+                print(f"The model \"{model_name}\" has been saved.")
 
             if 'submission' in tasks:
-                predictions = model.predict(self.df.drop('PassengerId', axis=1))
+                predictions = model.predict(self.X_test)
                 model.make_submission(self.df, predictions)
             
-            if 'save_auc' in tasks:
-                predictions = model.predict(self.df.drop('PassengerId', axis=1))
-                model.save_auc(self.y,)
+            if 'save_stats' in tasks:
+                predictions = model.predict(self.X_test)
+                model.save_stats(self.y_test, predictions, metrics=['accuracy', 'f1', 'roc_auc'])
 
     @staticmethod
     def run(models : list = [LogisticRegressionModel()], tasks : list = ['train', 'save_model']):
@@ -58,7 +54,6 @@ class Regression:
         regression.train_test_split()
         for model in models:
             regression.add_tasks(model, tasks)
-            print(regression.models)
         regression.execute_tasks()
 
 
