@@ -73,7 +73,7 @@ class BaseModel:
 
 
     def make_submission(self, passenger_ids, predictions, path='results') -> None:
-        submission = pd.DataFrame({'PassengerId': passenger_ids, 'Transported': predictions.astype(int)})
+        submission = pd.DataFrame({'PassengerId': passenger_ids, 'Transported': predictions.astype(bool)})
         directory = os.path.join(path, self.model.__class__.__name__)
         os.makedirs(directory, exist_ok=True)
         submission_path = os.path.join(directory, 'submission.csv')

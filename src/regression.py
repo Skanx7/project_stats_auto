@@ -4,19 +4,22 @@ import pandas as pd
 from .methods import LogisticRegressionModel, GradientBoostingModel
 from typing import Union
 
+train_data = pd.read_csv('data/preprocessed_train.csv')
+test_data = pd.read_csv('data/preprocessed_test.csv')
 
 Reg_Model = Union[LogisticRegressionModel, GradientBoostingModel]
 
 class Regression:
 
-    def __init__(self, df : pd.DataFrame, models = {}, debug = True):
+    def __init__(self, models = {}, df : pd.DataFrame = train_data, df_test : pd.DataFrame = test_data, debug = True):
+
         self.df = df.copy()
-        
         self.df.set_index('PassengerId', inplace=True, drop=True, verify_integrity=True)
         self.X = df.drop(['Transported'], axis=1, errors='ignore')
         self.y = df['Transported'].astype('int')
         self.models = models
         self.debug = debug
+        self.df_test = df_test.copy()
     
     def __repr__(self):
         return f"Regression({self.models})"
@@ -43,8 +46,12 @@ class Regression:
                 print(f"The model \"{model_name}\" has been saved.")
 
             if 'submission' in tasks:
-                passenger_ids = self.X_test['PassengerId']
-                predictions = model.predict(self.X_test,)
+                print(self.df_test.columns)
+                print(self.X_test.columns)
+                passenger_ids = self.df_test['PassengerId']
+                #passenger_ids = self.X_test['PassengerId']
+                predictions = model.predict(self.df_test)
+                #predictions = model.predict(self.X_test)
                 model.make_submission(passenger_ids, predictions)
             
             if 'save_stats' in tasks:
@@ -53,8 +60,7 @@ class Regression:
 
     @staticmethod
     def run(models : list = [LogisticRegressionModel()], tasks : list = ['train', 'save_model']):
-        df = pd.read_csv('data/preprocessed_train.csv')
-        regression = Regression(df)
+        regression = Regression()
         regression.train_test_split()
         for model in models:
             regression.add_tasks(model, tasks)
