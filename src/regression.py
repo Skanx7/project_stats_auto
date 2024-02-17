@@ -11,7 +11,9 @@ class Regression:
 
     def __init__(self, df : pd.DataFrame, models = {}, debug = True):
         self.df = df.copy()
-        self.X = df.drop(['Transported', 'PassengerId'], axis=1, errors='ignore')
+        
+        self.df.set_index('PassengerId', inplace=True, drop=True, verify_integrity=True)
+        self.X = df.drop(['Transported'], axis=1, errors='ignore')
         self.y = df['Transported'].astype('int')
         self.models = models
         self.debug = debug
@@ -25,13 +27,14 @@ class Regression:
         self.models[model.generate_name()] = {'instance': model, 'tasks': tasks}
 
     def execute_tasks(self):
+
         for model_name, model_info in self.models.items():
             model : Reg_Model = model_info['instance']
             tasks = model_info['tasks']
             if 'train' in tasks:
                 model.train(self.X_train, self.y_train)
                 print(f"The model \"{model_name}\" has been trained.")
-            if 'plot_auc' in tasks:
+            if 'plot_roc' in tasks:
                 model.plot_roc(self.X_test, self.y_test)
                 print(f"The model \"{model_name}\" AUC has been plotted.")
             
@@ -40,8 +43,9 @@ class Regression:
                 print(f"The model \"{model_name}\" has been saved.")
 
             if 'submission' in tasks:
-                predictions = model.predict(self.X_test)
-                model.make_submission(self.df, predictions)
+                passenger_ids = self.X_test['PassengerId']
+                predictions = model.predict(self.X_test,)
+                model.make_submission(passenger_ids, predictions)
             
             if 'save_stats' in tasks:
                 predictions = model.predict(self.X_test)
