@@ -31,7 +31,7 @@ class PreProcess:
 
     def set_index(self) -> None:
         pass
-        #self.df.set_index("PassengerId", inplace=True)
+        #self.df.set_index("PassengerId", inplace=True, drop= True, verify_integrity=True)
 
     def shuffle(self) -> None:
         """Shuffles the dataframe."""
@@ -111,28 +111,28 @@ class PreProcess:
             raise ValueError(f"Unknown method {method}")
             
 
-    def run(self, shuffle = False) -> None:
+    def run(self, method_handle_missing_values = 'REMOVE_NAN',shuffle = False) -> None:
 
         """Runs the preprocessing steps."""
 
         self.set_index()
         if shuffle:
             self.shuffle()
-        self.handle_missing_values()
+        self.handle_missing_values(method=method_handle_missing_values)
         self.standardize()
         self.feature_engineering()
         self.one_hot_encode()
-        
+
     @staticmethod
     def run_all(shuffle = False) -> None:
 
         """Runs the preprocessing steps for the train and test data."""
 
         preprocess_train = PreProcess(train_data)
-        preprocess_train.run(shuffle=shuffle)
+        preprocess_train.run(shuffle=shuffle, method_handle_missing_values='REMOVE_NAN')
 
         preprocess_test = PreProcess(test_data, is_test_data=True, scaler=preprocess_train.scaler)
-        preprocess_test.run(shuffle=shuffle)
+        preprocess_test.run(shuffle=shuffle, method_handle_missing_values='MODE_IMPUTATION')
 
         preprocess_train.df.to_csv(FILEPATH_PREPROCESSED_TRAIN_DATA, encoding='utf-8', index=False)
         preprocess_test.df.to_csv(FILEPATH_PREPROCESSED_TEST_DATA, encoding='utf-8', index=False)
