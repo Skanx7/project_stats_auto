@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from .methods import LogisticRegressionModel, GradientBoostingModel
 from typing import Union
-import numpy as np
 
 train_data = pd.read_csv('data/preprocessed_train.csv')
 test_data = pd.read_csv('data/preprocessed_test.csv')
@@ -12,15 +11,16 @@ Reg_Model = Union[LogisticRegressionModel, GradientBoostingModel]
 
 class Regression:
 
-    def __init__(self, models = {}, df : pd.DataFrame = train_data, df_test : pd.DataFrame = test_data, debug = True):
-
+    def __init__(self, df : pd.DataFrame = train_data, df_test : pd.DataFrame = test_data, models = {}, debug = True):
         self.df = df.copy()
+        
         self.df.set_index('PassengerId', inplace=True, drop=True, verify_integrity=True)
         self.X = df.drop(['Transported'], axis=1, errors='ignore')
         self.y = df['Transported'].astype('int')
         self.models = models
         self.debug = debug
         self.df_test = df_test.copy()
+
     
     def __repr__(self):
         return f"Regression({self.models})"
@@ -35,12 +35,6 @@ class Regression:
         for model_name, model_info in self.models.items():
             model : Reg_Model = model_info['instance']
             tasks = model_info['tasks']
-            
-            if 'cross_validate' in tasks:
-                cv_scores = model.cross_validate(self.X, self.y, cv=10, scoring='accuracy')
-                if self.debug:
-                    print(f"Cross-validation scores for \"{model_name}\": {cv_scores}")
-                    print(f"Average cross-validation score for \"{model_name}\": {np.mean(cv_scores)}")
             if 'train' in tasks:
                 model.train(self.X_train, self.y_train)
                 print(f"The model \"{model_name}\" has been trained.")
@@ -67,7 +61,8 @@ class Regression:
 
     @staticmethod
     def run(models : list = [LogisticRegressionModel()], tasks : list = ['train', 'save_model']):
-        regression = Regression()
+        df = pd.read_csv('data/preprocessed_train.csv')
+        regression = Regression(df)
         regression.train_test_split()
         for model in models:
             regression.add_tasks(model, tasks)

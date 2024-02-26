@@ -1,4 +1,3 @@
-from .plotter import Plotter
 from .preprocess import PreProcess
 from .regression import Regression
 from .methods import LogisticRegressionModel, GradientBoostingModel

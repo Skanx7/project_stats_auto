@@ -1,9 +1,17 @@
-import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-from .data_handler import train_data, test_data, train_prep, test_prep, results
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.preprocessing import StandardScaler
 from sklearn.impute import SimpleImputer, KNNImputer
+
+FILEPATH_TRAIN_DATA = "data/train.csv"
+FILEPATH_TEST_DATA = "data/test.csv"
+
+FILEPATH_PREPROCESSED_TRAIN_DATA = "data/preprocessed_train.csv"
+FILEPATH_PREPROCESSED_TEST_DATA = "data/preprocessed_test.csv"
+
+
+train_data = pd.read_csv(FILEPATH_TRAIN_DATA, sep = ",",encoding="UTF-8")
+test_data = pd.read_csv(FILEPATH_TEST_DATA, sep = ",",encoding="UTF-8")
+
 
 class PreProcess:
 
@@ -74,7 +82,8 @@ class PreProcess:
     def handle_missing_values(self, method='REMOVE_NAN'):
 
         """Handles missing values in the dataframe with different methods."""
-        
+        if self.is_test_data:
+            method = 'MODE_IMPUTATION'
         if method == 'REMOVE_NAN':
             self.df.dropna(inplace=True)
         elif method in ['MEAN_IMPUTATION', 'MEDIAN_IMPUTATION', 'MODE_IMPUTATION', 'CONSTANT_IMPUTATION']:
@@ -125,5 +134,5 @@ class PreProcess:
         preprocess_test = PreProcess(test_data, is_test_data=True, scaler=preprocess_train.scaler)
         preprocess_test.run(shuffle=shuffle, method_handle_missing_values='MODE_IMPUTATION')
 
-        train_prep.write(preprocess_train.df)
-        test_prep.write(preprocess_test.df)
+        preprocess_train.df.to_csv(FILEPATH_PREPROCESSED_TRAIN_DATA, encoding='utf-8', index=False)
+        preprocess_test.df.to_csv(FILEPATH_PREPROCESSED_TEST_DATA, encoding='utf-8', index=False)
